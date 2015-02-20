@@ -236,6 +236,7 @@ public:
             HORIZ_CONV      = 6,
             SOLITARYWAVE    = 7,
             DJL             = 8,
+            SOCHANNEL       = 9,   // Created by B.Z.
             _NUM_PROBLEM_TYPES
         };
     };

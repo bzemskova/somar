@@ -2,7 +2,7 @@
 ebase := somar
 
 # Where do the Chombo libraries live?
-CHOMBO_HOME = ../../lib/Chombo/lib
+CHOMBO_HOME = /nas02/home/z/e/zemskova/research/lib/Chombo/lib
 
 # Do you want to trap floating point errors?
 TRAPFPE = FALSE

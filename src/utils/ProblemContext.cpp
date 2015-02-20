@@ -44,6 +44,7 @@
 #include "HorizConvBCUtil.H"
 #include "SolitaryWaveBCUtil.H"
 #include "DJLBCUtil.H"
+#include "SOChannelBCUtil.H"
 
 
 ProblemContext* ProblemContext::s_singletonPtr = NULL;
@@ -968,6 +969,9 @@ PhysBCUtil* ProblemContext::newPhysBCUtil () const
         break;
     case ProblemType::DJL:
         physBCPtr = new DJLBCUtil;
+        break;
+    case ProblemType::SOCHANNEL:
+        physBCPtr = new SOChannelBCUtil;
         break;
     default:
         // Undefined problem
