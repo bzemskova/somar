@@ -159,32 +159,62 @@ BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
     const IntVect normVect = BASISV(a_dir);
     const IntVect transVect = IntVect::Unit - normVect;
 
-    // Transverse, no-slip BCs
-    RefCountedPtr<BCGhostClass> transGhostBCPtr (
-        new EllipticConstNeumBCGhostClass(RealVect::Zero,
-                                          RealVect::Zero,
-                                          transVect,
-                                          transVect)
-    );
-    holder.addBCMethod(transGhostBCPtr);
+    if (a_dir == 1) 
+    {
+        RefCountedPtr<BCGhostClass> ytransGhostBCPtr (
+            new EllipticConstNeumBCGhostClass(RealVect::Zero,
+                                              RealVect::Zero,
+                                              IntVect(1,0,1), //on low side want dw/dy, du/dy=0
+                                              IntVect(1,1,0)) //on high side want du/dy,dv/dy=0
+        );
+        holder.addBCMethod(ytransGhostBCPtr);
+        
+        
+        RefCountedPtr<BCFluxClass> ytransFluxBCPtr (
+            new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                             RealVect::Zero,
+                                             IntVect(1,0,1), //on low side want dw/dy, du/dy=0
+                                             IntVect(1,1,0)) //on high side want du/dy,dv/dy=0
+        );
+        holder.addBCMethod(ytransFluxBCPtr);
+        RefCountedPtr<BCGhostClass> ynormGhostBCPtr (
+            new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                              RealVect::Zero,
+                                              IntVect(0,1,0), //on low side want v=0
+                                              IntVect(0,0,1)) //on high side want w=0
+        );
+        holder.addBCMethod(ynormGhostBCPtr);
+        
+    }
+    else 
+    {
+        // Transverse, no-slip BCs
+        RefCountedPtr<BCGhostClass> transGhostBCPtr (
+            new EllipticConstNeumBCGhostClass(RealVect::Zero,
+                                              RealVect::Zero,
+                                              transVect,
+                                              transVect)
+        );
+        holder.addBCMethod(transGhostBCPtr);
 
-    // Transverse, no-slip BCs (sets fluxes)
-    RefCountedPtr<BCFluxClass> transFluxBCPtr (
-        new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                         RealVect::Zero,
-                                         transVect,
-                                         transVect)
-    );
-    holder.addBCMethod(transFluxBCPtr);
+        // Transverse, no-slip BCs (sets fluxes)
+        RefCountedPtr<BCFluxClass> transFluxBCPtr (
+            new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                             RealVect::Zero,
+                                             transVect,
+                                             transVect)
+        );
+        holder.addBCMethod(transFluxBCPtr);
 
-    // Normal, no flux BCs
-    RefCountedPtr<BCGhostClass> normGhostBCPtr (
-        new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                          RealVect::Zero,
-                                          normVect,
-                                          normVect)
-    );
-    holder.addBCMethod(normGhostBCPtr);
+        // Normal, no flux BCs
+        RefCountedPtr<BCGhostClass> normGhostBCPtr (
+            new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                              RealVect::Zero,
+                                              normVect,
+                                              normVect)
+        );
+        holder.addBCMethod(normGhostBCPtr);
+    }
 
     return holder;
 }

@@ -46,8 +46,8 @@ amr.cfl = 0.8
 
 
 ### Viscosity / diffusion
-amr.scal_diffusion_coeffs = 0.0
-amr.viscosity = 0.0
+amr.scal_diffusion_coeffs = 0.00003780
+amr.viscosity = 0.0002646
 
 
 ### Plot files
