@@ -18,7 +18,7 @@ amr.nx = 32 32 32
 # amr.nx_offset =                         # [0 0 0]
 # amr.max_base_grid_size =
 # amr.max_grid_size =
-# amr.isPeriodic =                        # [0 0 0]
+amr.isPeriodic = 1 0 0                       # [0 0 0]
 
 
 ### Regridding

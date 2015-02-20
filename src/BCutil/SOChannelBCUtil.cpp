@@ -111,6 +111,9 @@ void SOChannelBCUtil::setScalarIC (FArrayBox&           a_scalarFAB,
 // -----------------------------------------------------------------------------
 BCMethodHolder SOChannelBCUtil::diffusiveSolveFuncBC () const
 {
+    return PhysBCUtil::diffusiveSolveFuncBC();
+    /////
+
     BCMethodHolder holder;
 
     const IntVect vmask = BASISV(SpaceDim-1);
