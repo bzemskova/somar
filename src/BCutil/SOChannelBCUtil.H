@@ -49,8 +49,8 @@ public:
                               const LevelGeometry& a_levGeo,
                               const DataIndex&     a_di) const;
 
-    // Used in single-compoent velocity TGA solves
-    virtual BCMethodHolder viscousSolveFuncBC (int a_dir) const;
+    // // Used in single-compoent velocity TGA solves
+    // virtual BCMethodHolder viscousSolveFuncBC (int a_dir) const;
 
     // used in scalar TGA solves
     virtual BCMethodHolder diffusiveSolveFuncBC () const;
@@ -58,10 +58,13 @@ public:
     // Sets ghosts needed to calculate the diffusive term nu.L[scalar]
     virtual BCMethodHolder diffusiveSourceFuncBC () const;
 
-
 protected:
-    // Sets physical BCs on velocities
-    virtual BCMethodHolder basicVelFuncBC (int a_veldir, bool a_isViscous) const;
+    static void topBCValueFunc (Real*           a_pos,
+                                int*            a_dir,
+                                Side::LoHiSide* a_side,
+                                Real*           a_value,
+                                const RealVect& a_dx,
+                                Real            a_time);
 };
 
 

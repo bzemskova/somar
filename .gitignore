@@ -25,7 +25,6 @@ doc/*.log
 # Other files
 *.bin
 *.mod
-*.*.iceman
 .cproject
 .project
 .settings/

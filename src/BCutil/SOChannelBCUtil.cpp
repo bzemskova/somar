@@ -28,45 +28,6 @@
 
 
 // -----------------------------------------------------------------------------
-// Holds Diri BCs for the scalar field at the top of the domain.
-// -----------------------------------------------------------------------------
-void SOtopBCValueFunc (Real*           a_pos,
-                     int*            a_dir,
-                     Side::LoHiSide* a_side,
-                     Real*           a_value,
-                     const RealVect& a_dx,
-                     Real            a_time)
-{
-    // We had better be at the top!
-    CH_assert(a_dir[0] == SpaceDim-1);
-    CH_assert(a_side[0] == Side::Hi);
-
-    // These params adjust the shape of the hot/cold interface.
-    static Real transitionWidth = 1.0e-2;
-    static RealVect L = LevelGeometry::getDomainLength();
-
-    static Real xmid = L[0]/2;
-    static Real b0 = -0.5;
-    static Real deltab = 1.0;
-
-#if CH_SPACEDIM == 2
-    Real arg = (a_pos[0] - xmid) / transitionWidth;
-
-#else
-    static Real pertAmp = 0.025;
-    static Real pertK = 2.0 * (2.0*Pi/L[1]);
-
-    Real xoffset = xmid + pertAmp*cos(pertK * a_pos[1]);
-    Real arg = (a_pos[0] - xoffset) / transitionWidth;
-#endif
-
-    // Set the BC value
-    // a_value[0] = b0 + deltab*tanh(arg);
-    a_value[0] = (arg > 0)? 1.0: 0.0;
-}
-
-
-// -----------------------------------------------------------------------------
 // Default constructor
 // -----------------------------------------------------------------------------
 SOChannelBCUtil::SOChannelBCUtil ()
@@ -101,7 +62,32 @@ void SOChannelBCUtil::setScalarIC (FArrayBox&           a_scalarFAB,
                                    const LevelGeometry& a_levGeo,
                                    const DataIndex&     a_di) const
 {
-    a_scalarFAB.setVal(0.5);
+    a_scalarFAB.setVal(0.0, a_scalarComp);
+}
+
+
+// -----------------------------------------------------------------------------
+// Holds Diri BCs for the scalar field at the top of the domain.
+// This is just a linear profile in b_{total}.
+// -----------------------------------------------------------------------------
+void SOChannelBCUtil::topBCValueFunc (Real*           a_pos,
+                                      int*            a_dir,
+                                      Side::LoHiSide* a_side,
+                                      Real*           a_value,
+                                      const RealVect& a_dx,
+                                      Real            a_time)
+{
+    // We had better be at the top!
+    CH_assert(a_dir[0] == SpaceDim-1);
+    CH_assert(a_side[0] == Side::Hi);
+
+    // These params adjust the shape of the hot/cold interface.
+    static const RealVect L = LevelGeometry::getDomainLength();
+    static const Real minB = 0.0;
+    static const Real deltaB = 1.0;
+
+    Real fracX = a_pos[1] / L[1];
+    a_value[0] = minB + deltaB*fracX;
 }
 
 
@@ -111,9 +97,6 @@ void SOChannelBCUtil::setScalarIC (FArrayBox&           a_scalarFAB,
 // -----------------------------------------------------------------------------
 BCMethodHolder SOChannelBCUtil::diffusiveSolveFuncBC () const
 {
-    return PhysBCUtil::diffusiveSolveFuncBC();
-    /////
-
     BCMethodHolder holder;
 
     const IntVect vmask = BASISV(SpaceDim-1);
@@ -139,7 +122,7 @@ BCMethodHolder SOChannelBCUtil::diffusiveSolveFuncBC () const
 
     // Top BC
     RefCountedPtr<BCGhostClass> topGhostBCPtr (
-        new EllipticDiriBCGhostClass(&SOtopBCValueFunc,
+        new EllipticDiriBCGhostClass(&topBCValueFunc,
                                      IntVect::Zero,
                                      vmask)
     );
@@ -148,6 +131,24 @@ BCMethodHolder SOChannelBCUtil::diffusiveSolveFuncBC () const
     return holder;
 }
 
+
+// -----------------------------------------------------------------------------
+// diffusiveSourceFuncBC (Used to calculate the diffusive term nu.L[scalar])
+// Just use the diffusive solver's BCs.
+// -----------------------------------------------------------------------------
+BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
+{
+    return SOChannelBCUtil::diffusiveSolveFuncBC();
+}
+
+
+
+
+
+
+
+// Code below this point has not been refactored for SOChannel problem yet.
+#if 0
 
 // -----------------------------------------------------------------------------
 // viscousSolveFuncBC (Used in single-component velocity TGA solves)
@@ -159,8 +160,11 @@ BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
     const IntVect normVect = BASISV(a_dir);
     const IntVect transVect = IntVect::Unit - normVect;
 
-    if (a_dir == 1) 
+    if (a_dir == 1)
     {
+        // Almost! a_dir is the velocity component, so the code inside this block
+        // only sets BCs on v. I guess I shoulc have called a_dir something like
+        // a_velComp instead for clarity. -ES
         RefCountedPtr<BCGhostClass> ytransGhostBCPtr (
             new EllipticConstNeumBCGhostClass(RealVect::Zero,
                                               RealVect::Zero,
@@ -168,8 +172,8 @@ BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
                                               IntVect(1,1,0)) //on high side want du/dy,dv/dy=0
         );
         holder.addBCMethod(ytransGhostBCPtr);
-        
-        
+
+
         RefCountedPtr<BCFluxClass> ytransFluxBCPtr (
             new EllipticConstNeumBCFluxClass(RealVect::Zero,
                                              RealVect::Zero,
@@ -184,9 +188,9 @@ BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
                                               IntVect(0,0,1)) //on high side want w=0
         );
         holder.addBCMethod(ynormGhostBCPtr);
-        
+
     }
-    else 
+    else
     {
         // Transverse, no-slip BCs
         RefCountedPtr<BCGhostClass> transGhostBCPtr (
@@ -219,23 +223,5 @@ BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
     return holder;
 }
 
-
-// -----------------------------------------------------------------------------
-// diffusiveSourceFuncBC (Used to calculate the diffusive term nu.L[scalar])
-// Just use the diffusive solver's BCs.
-// -----------------------------------------------------------------------------
-BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
-{
-    return SOChannelBCUtil::diffusiveSolveFuncBC();
-}
-
-
-// -----------------------------------------------------------------------------
-// basicVelFuncBC
-// Sets physical BCs on velocities.
-// -----------------------------------------------------------------------------
-BCMethodHolder SOChannelBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
-{
-    return PhysBCUtil::basicVelFuncBC(a_veldir, false);
-}
+#endif // 0
 
