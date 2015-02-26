@@ -1007,18 +1007,67 @@ BCMethodHolder PhysBCUtil::streamSolverBC (int comp) const
 // -----------------------------------------------------------------------------
 BCMethodHolder PhysBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
 {
+    // BCMethodHolder holder;
+
+    // RefCountedPtr<BCGhostClass> velBCPtr = RefCountedPtr<BCGhostClass>(
+    //     new BasicVelocityBCGhostClass(0.0,      //s_inflowVel,
+    //                                   -1,       //s_inflowDir,
+    //                                   Side::Lo, //s_inflowSide,
+    //                                   -1,       //s_outflowDir,
+    //                                   Side::Lo, //s_outflowSide,
+    //                                   a_veldir,
+    //                                   a_isViscous)
+    // );
+    // holder.addBCMethod(velBCPtr);
+
+    // return holder;
+
+
+    // New code as of 02/25/2015
+    // Should produce better conservation of momentum
+    const IntVect normDir = BASISV(a_veldir);
+    const IntVect transDir = IntVect::Unit - normDir;
     BCMethodHolder holder;
 
-    RefCountedPtr<BCGhostClass> velBCPtr = RefCountedPtr<BCGhostClass>(
-        new BasicVelocityBCGhostClass(0.0,      //s_inflowVel,
-                                      -1,       //s_inflowDir,
-                                      Side::Lo, //s_inflowSide,
-                                      -1,       //s_outflowDir,
-                                      Side::Lo, //s_outflowSide,
-                                      a_veldir,
-                                      a_isViscous)
+    // Transverse
+    if (a_isViscous) {
+        // Zero Diri
+        RefCountedPtr<BCGhostClass> ghostBCPtr(
+            new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                              RealVect::Zero,
+                                              transDir,
+                                              transDir)
+        );
+        holder.addBCMethod(ghostBCPtr);
+
+    } else {
+        // Zero Neum
+        int extrapOrder = 0;
+        RefCountedPtr<BCGhostClass> ghostBCPtr(
+            new EllipticExtrapBCGhostClass(extrapOrder,
+                                           transDir,
+                                           transDir)
+        );
+        holder.addBCMethod(ghostBCPtr);
+
+        RefCountedPtr<BCFluxClass> fluxBCPtr(
+            new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                             RealVect::Zero,
+                                             transDir,
+                                             transDir)
+        );
+        holder.addBCMethod(fluxBCPtr);
+    }
+
+    // Normal - Zero Diri
+    RefCountedPtr<BCGhostClass> ghostBCPtr(
+        new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                          RealVect::Zero,
+                                          normDir,
+                                          normDir)
     );
-    holder.addBCMethod(velBCPtr);
+
+    holder.addBCMethod(ghostBCPtr);
 
     return holder;
 }

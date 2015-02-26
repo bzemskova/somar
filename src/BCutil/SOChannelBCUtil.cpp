@@ -146,164 +146,184 @@ BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
 //-------------------------------------------------------------------------------
 BCMethodHolder SOChannelBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
 {
-   BCMethodHolder holder;
-   const int extrapOrder = 0;
-   IntVect ymask(BASISV(1));
-   IntVect nonymask = IntVect::Unit - ymask;
-   
-   //Tried also looking at BeamGenerationBCUtil.cpp -- seems to have decomposition
-   //into velocity components in a similar manner
-   
-   if (a_veldir == 1) {
-        if (a_isViscous) {
-           // zero order extrap on high y side: dv/dy=0
-            RefCountedPtr<BCGhostClass> yextrapBCPtr(
-                new EllipticExtrapBCGhostClass(extrapOrder,
-                                               IntVect::Zero,
-                                               ymask)
-            );
-            holder.addBCMethod(yextrapBCPtr);
-            
-           // no flux BCs on high y side: dv/dy = 0
-            RefCountedPtr<BCFluxClass> yfluxBCPtr (
-                new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                 RealVect::Zero,
-                                                 IntVect::Zero,
-                                                 ymask)
-            );
-            holder.addBCMethod(yfluxBCPtr);
-            
-           // no slip, solid wall on all other sides: v=0
-            RefCountedPtr<BCGhostClass> vBCPtr = RefCountedPtr<BCGhostClass>(
-                new BasicVelocityBCGhostClass(0.0,             // inflowVel
-                                              -1,              // inflowDir
-                                              Side::Lo,        // inflowSide
-                                              -1,              // outflowDir
-                                              Side::Hi,        // outflowSide
-                                              a_veldir,
-                                              a_isViscous,
-                                              IntVect::Unit,
-                                              nonymask)
-            );
-            holder.addBCMethod(vBCPtr);       
-            
-        } else {
-           // zero order extrap on high y side
-            RefCountedPtr<BCGhostClass> yextrapBCPtr(
-                new EllipticExtrapBCGhostClass(extrapOrder,
-                                               IntVect::Zero,
-                                               ymask)
-            );
-            holder.addBCMethod(yextrapBCPtr);
-           // no flux BCs on high y side
-            RefCountedPtr<BCFluxClass> yfluxBCPtr (
-                new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                 RealVect::Zero,
-                                                 IntVect::Zero,
-                                                 ymask)
-            );
-            holder.addBCMethod(yfluxBCPtr);
-            
-           // free slip, solid wall all other sides
-            RefCountedPtr<BCGhostClass> vslipBCPtr = RefCountedPtr<BCGhostClass>(
-                new BasicVelocityBCGhostClass(0.0,             // inflowVel
-                                              -1,              // inflowDir
-                                              Side::Lo,        // inflowSide
-                                              -1,              // outflowDir
-                                              Side::Hi,        // outflowSide
-                                              a_veldir,
-                                              false,
-                                              IntVect::Unit,
-                                              nonymask)
-            );
-            holder.addBCMethod(vslipBCPtr);
-        }
-   } else {
-        return PhysBCUtil::basicVelFuncBC (a_veldir, a_isViscous);
-   }
+    // // TEMPORARY!!
+    // return PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
 
-   return holder;
-}
-
-
-
-
-
-// Code below this point has not been refactored for SOChannel problem yet.
-#if 0
-
-// -----------------------------------------------------------------------------
-// viscousSolveFuncBC (Used in single-component velocity TGA solves)
-// -----------------------------------------------------------------------------
-BCMethodHolder SOChannelBCUtil::viscousSolveFuncBC (int a_dir) const
-{
     BCMethodHolder holder;
+    const int extrapOrder = 0;
 
-    const IntVect normVect = BASISV(a_dir);
-    const IntVect transVect = IntVect::Unit - normVect;
+    //Tried also looking at BeamGenerationBCUtil.cpp -- seems to have decomposition
+    //into velocity components in a similar manner
 
-    if (a_dir == 1)
-    {
-        // Almost! a_dir is the velocity component, so the code inside this block
-        // only sets BCs on v. I guess I shoulc have called a_dir something like
-        // a_velComp instead for clarity. -ES
-        RefCountedPtr<BCGhostClass> ytransGhostBCPtr (
-            new EllipticConstNeumBCGhostClass(RealVect::Zero,
-                                              RealVect::Zero,
-                                              IntVect(1,0,1), //on low side want dw/dy, du/dy=0
-                                              IntVect(1,1,0)) //on high side want du/dy,dv/dy=0
-        );
-        holder.addBCMethod(ytransGhostBCPtr);
+    if (a_veldir == 0) {
+        // x-dir
+        {
+            // Periodic. Do nothing
+        }
 
+        // y-dir
+        {
+            // Lo side
+            if (a_isViscous) {
+                // No-slip
+                RefCountedPtr<BCGhostClass> ghostBCPtr(
+                    new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                                      RealVect::Zero,
+                                                      BASISV(1),
+                                                      IntVect::Zero)
+                );
+                holder.addBCMethod(ghostBCPtr);
 
-        RefCountedPtr<BCFluxClass> ytransFluxBCPtr (
-            new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                             RealVect::Zero,
-                                             IntVect(1,0,1), //on low side want dw/dy, du/dy=0
-                                             IntVect(1,1,0)) //on high side want du/dy,dv/dy=0
-        );
-        holder.addBCMethod(ytransFluxBCPtr);
-        RefCountedPtr<BCGhostClass> ynormGhostBCPtr (
-            new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                              RealVect::Zero,
-                                              IntVect(0,1,0), //on low side want v=0
-                                              IntVect(0,0,1)) //on high side want w=0
-        );
-        holder.addBCMethod(ynormGhostBCPtr);
+            } else {
+                // Free-slip
+                RefCountedPtr<BCGhostClass> ghostBCPtr(
+                    new EllipticExtrapBCGhostClass(extrapOrder,
+                                                   BASISV(1),
+                                                   IntVect::Zero)
+                );
+                holder.addBCMethod(ghostBCPtr);
 
-    }
-    else
-    {
-        // Transverse, no-slip BCs
-        RefCountedPtr<BCGhostClass> transGhostBCPtr (
-            new EllipticConstNeumBCGhostClass(RealVect::Zero,
-                                              RealVect::Zero,
-                                              transVect,
-                                              transVect)
-        );
-        holder.addBCMethod(transGhostBCPtr);
+                RefCountedPtr<BCFluxClass> fluxBCPtr(
+                    new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                     RealVect::Zero,
+                                                     BASISV(1),
+                                                     IntVect::Zero)
+                );
+                holder.addBCMethod(fluxBCPtr);
+            }
 
-        // Transverse, no-slip BCs (sets fluxes)
-        RefCountedPtr<BCFluxClass> transFluxBCPtr (
-            new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                             RealVect::Zero,
-                                             transVect,
-                                             transVect)
-        );
-        holder.addBCMethod(transFluxBCPtr);
+            // Hi side
+            {
+                // Free-slip
+                RefCountedPtr<BCGhostClass> ghostBCPtr(
+                    new EllipticExtrapBCGhostClass(extrapOrder,
+                                                   IntVect::Zero,
+                                                   BASISV(1))
+                );
+                holder.addBCMethod(ghostBCPtr);
 
-        // Normal, no flux BCs
-        RefCountedPtr<BCGhostClass> normGhostBCPtr (
-            new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                              RealVect::Zero,
-                                              normVect,
-                                              normVect)
-        );
-        holder.addBCMethod(normGhostBCPtr);
+                RefCountedPtr<BCFluxClass> fluxBCPtr(
+                    new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                     RealVect::Zero,
+                                                     IntVect::Zero,
+                                                     BASISV(1))
+                );
+                holder.addBCMethod(fluxBCPtr);
+            }
+        } // end y-dir
+
+        // z-dir
+        if (a_isViscous) {
+            //  No-slip
+            RefCountedPtr<BCGhostClass> ghostBCPtr(
+                new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                                  RealVect::Zero,
+                                                  BASISV(2),
+                                                  BASISV(2))
+            );
+            holder.addBCMethod(ghostBCPtr);
+
+        } else {
+            // Free-slip
+            RefCountedPtr<BCGhostClass> ghostBCPtr(
+                new EllipticExtrapBCGhostClass(extrapOrder,
+                                               BASISV(2),
+                                               BASISV(2))
+            );
+            holder.addBCMethod(ghostBCPtr);
+
+            RefCountedPtr<BCFluxClass> fluxBCPtr(
+                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                 RealVect::Zero,
+                                                 BASISV(2),
+                                                 BASISV(2))
+            );
+            holder.addBCMethod(fluxBCPtr);
+        } // end z-dir
+
+    } else if (a_veldir == 1) {
+        // TEMPORARY
+        // We will set standard no-slip/free-slip BCs all around,
+        // then overwrite them one-by-one. This way, we can comment
+        // out some BCs and have something to fall back on.
+        holder = PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
+
+        // x-dir
+        {
+            // Periodic. Do nothing
+        }
+
+        // y-dir
+        {
+            // Lo side
+            {
+                // No momentum flux through wall
+                RefCountedPtr<BCGhostClass> ghostBCPtr(
+                    new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                                      RealVect::Zero,
+                                                      BASISV(1),
+                                                      IntVect::Zero)
+                );
+                holder.addBCMethod(ghostBCPtr);
+            }
+
+            // NOTE: This leads to an instability.
+            // I think we need zero Diri Pressure BCs here.
+            // But that may conflict with the other velocity comp BCs.
+            // This needs some thought.
+            // // Hi side
+            // {
+            //     // Zero strain rate normal to boundary.
+            //     RefCountedPtr<BCGhostClass> ghostBCPtr(
+            //         new EllipticExtrapBCGhostClass(extrapOrder,
+            //                                        IntVect::Zero,
+            //                                        BASISV(1))
+            //     );
+            //     holder.addBCMethod(ghostBCPtr);
+
+            //     RefCountedPtr<BCFluxClass> fluxBCPtr(
+            //         new EllipticConstNeumBCFluxClass(RealVect::Zero,
+            //                                          RealVect::Zero,
+            //                                          IntVect::Zero,
+            //                                          BASISV(1))
+            //     );
+            //     holder.addBCMethod(fluxBCPtr);
+            // }
+        } // end y-dir
+
+        // z-dir
+        if (a_isViscous) {
+            //  No-slip
+            RefCountedPtr<BCGhostClass> ghostBCPtr(
+                new EllipticConstDiriBCGhostClass(RealVect::Zero,
+                                                  RealVect::Zero,
+                                                  BASISV(2),
+                                                  BASISV(2))
+            );
+            holder.addBCMethod(ghostBCPtr);
+
+        } else {
+            // Free-slip
+            RefCountedPtr<BCGhostClass> ghostBCPtr(
+                new EllipticExtrapBCGhostClass(extrapOrder,
+                                               BASISV(2),
+                                               BASISV(2))
+            );
+            holder.addBCMethod(ghostBCPtr);
+
+            RefCountedPtr<BCFluxClass> fluxBCPtr(
+                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                 RealVect::Zero,
+                                                 BASISV(2),
+                                                 BASISV(2))
+            );
+            holder.addBCMethod(fluxBCPtr);
+        } // end z-dir
+
+    } else {
+        // No slip / free slip on all dirs and sides.
+        return PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
     }
 
     return holder;
 }
-
-#endif // 0
-
