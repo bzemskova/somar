@@ -141,7 +141,9 @@ BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
     return SOChannelBCUtil::diffusiveSolveFuncBC();
 }
 
-
+//-------------------------------------------------------------------------------
+//basicVelFuncBC
+//-------------------------------------------------------------------------------
 BCMethodHolder SOChannelBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
 {
    BCMethodHolder holder;
