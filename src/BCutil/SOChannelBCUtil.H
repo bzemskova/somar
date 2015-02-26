@@ -65,8 +65,8 @@ protected:
                                 Real*           a_value,
                                 const RealVect& a_dx,
                                 Real            a_time);
+
+    virtual BCMethodHolder basicVelFuncBC (int a_veldir, bool a_isViscous) const;
 };
-
-
 #endif //!__HorizConvBCUtil_H__INCLUDED__
 

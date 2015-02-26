@@ -142,6 +142,86 @@ BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
 }
 
 
+BCMethodHolder SOChannelBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
+{
+   BCMethodHolder holder;
+   const int extrapOrder = 0;
+   IntVect ymask(BASISV(1));
+   IntVect nonymask = IntVect::Unit - ymask;
+   
+   //Tried also looking at BeamGenerationBCUtil.cpp -- seems to have decomposition
+   //into velocity components in a similar manner
+   
+   if (a_veldir == 1) {
+        if (a_isViscous) {
+           // zero order extrap on high y side: dv/dy=0
+            RefCountedPtr<BCGhostClass> yextrapBCPtr(
+                new EllipticExtrapBCGhostClass(extrapOrder,
+                                               IntVect::Zero,
+                                               ymask)
+            );
+            holder.addBCMethod(yextrapBCPtr);
+            
+           // no flux BCs on high y side: dv/dy = 0
+            RefCountedPtr<BCFluxClass> yfluxBCPtr (
+                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                 RealVect::Zero,
+                                                 IntVect::Zero,
+                                                 ymask)
+            );
+            holder.addBCMethod(yfluxBCPtr);
+            
+           // no slip, solid wall on all other sides: v=0
+            RefCountedPtr<BCGhostClass> vBCPtr = RefCountedPtr<BCGhostClass>(
+                new BasicVelocityBCGhostClass(0.0,             // inflowVel
+                                              -1,              // inflowDir
+                                              Side::Lo,        // inflowSide
+                                              -1,              // outflowDir
+                                              Side::Hi,        // outflowSide
+                                              a_veldir,
+                                              a_isViscous,
+                                              IntVect::Unit,
+                                              nonymask)
+            );
+            holder.addBCMethod(vBCPtr);       
+            
+        } else {
+           // zero order extrap on high y side
+            RefCountedPtr<BCGhostClass> yextrapBCPtr(
+                new EllipticExtrapBCGhostClass(extrapOrder,
+                                               IntVect::Zero,
+                                               ymask)
+            );
+            holder.addBCMethod(yextrapBCPtr);
+           // no flux BCs on high y side
+            RefCountedPtr<BCFluxClass> yfluxBCPtr (
+                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+                                                 RealVect::Zero,
+                                                 IntVect::Zero,
+                                                 ymask)
+            );
+            holder.addBCMethod(yfluxBCPtr);
+            
+           // free slip, solid wall all other sides
+            RefCountedPtr<BCGhostClass> vslipBCPtr = RefCountedPtr<BCGhostClass>(
+                new BasicVelocityBCGhostClass(0.0,             // inflowVel
+                                              -1,              // inflowDir
+                                              Side::Lo,        // inflowSide
+                                              -1,              // outflowDir
+                                              Side::Hi,        // outflowSide
+                                              a_veldir,
+                                              false,
+                                              IntVect::Unit,
+                                              nonymask)
+            );
+            holder.addBCMethod(vslipBCPtr);
+        }
+   } else {
+        return PhysBCUtil::basicVelFuncBC (a_veldir, a_isViscous);
+   }
+
+   return holder;
+}
 
 
 
