@@ -995,7 +995,7 @@ void AMRNavierStokes::getNewVelocity (LevelData<FArrayBox>&       a_rhs,
     if (s_tidalU0 * s_tidalOmega != 0.0) {
         // Compute the gravitational source term.
         LevelData<FArrayBox> tidalSource(grids, SpaceDim);
-        this->fillTidalSource(tidalSource, a_oldTime, a_dt);
+        this->fillTidalSource(tidalSource,a_newVel, a_oldTime, a_dt);
 
         // Combine the advective and gravitational source terms.
         for (dit.reset(); dit.ok(); ++dit) {
@@ -1372,7 +1372,7 @@ void AMRNavierStokes::predictVelocities (LevelData<FluxBox>&       a_predVel,
         // This only needs to be first order, so passing in 0.5*a_dt ot a_dt
         // shouldn't make much of a difference.
         LevelData<FArrayBox> tidalSource(grids, SpaceDim, m_tracingGhosts);
-        this->fillTidalSource(tidalSource, a_oldTime, 0.5*a_dt);
+        this->fillTidalSource(tidalSource, a_oldVel, a_oldTime, 0.5*a_dt);
 
         // Note: fillTidalSource produces a vector, not a flux,
         // which allows us to simply add it to viscousSource.

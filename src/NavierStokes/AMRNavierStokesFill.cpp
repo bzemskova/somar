@@ -634,6 +634,7 @@ void AMRNavierStokes::fillGravSource (LevelData<FArrayBox>& a_gravSource,
 // a_tidalSource needs SpaceDim comps.
 // -----------------------------------------------------------------------------
 void AMRNavierStokes::fillTidalSource (LevelData<FArrayBox>& a_tidalSource,
+				       LevelData<FArrayBox>& a_vel,
                                        const Real            a_oldTime,
                                        const Real            a_dt) const
 {
@@ -651,13 +652,16 @@ void AMRNavierStokes::fillTidalSource (LevelData<FArrayBox>& a_tidalSource,
     if (s_tidalOmega * s_tidalU0 != 0.0) {
         // const Real tidalForce = s_tidalU0 * s_tidalOmega * cos(s_tidalOmega * a_time);
 
-        const Real oldArg = s_tidalOmega * a_oldTime;
-        const Real newArg = s_tidalOmega * (a_oldTime + a_dt);
-        const Real tidalForce = s_tidalU0 * (sin(newArg) - sin(oldArg)) / a_dt;
+      //  const Real oldArg = s_tidalOmega * a_oldTime;
+      //  const Real newArg = s_tidalOmega * (a_oldTime + a_dt);
+      //  const Real tidalForce = s_tidalU0 * (sin(newArg) - sin(oldArg)) / a_dt;
 
         for (dit.reset(); dit.ok(); ++dit) {
-            a_tidalSource[dit].setVal(tidalForce, 0);
-            a_tidalSource[dit].setVal(0.0, a_tidalSource[dit].box(), 1, SpaceDim-1);
+           // a_tidalSource[dit].setVal(tidalForce, 0);
+           // a_tidalSource[dit].setVal(0.0, a_tidalSource[dit].box(), 1, SpaceDim-1);
+	    a_tidalSource[dit].setVal(0.0);
+	    a_tidalSource[dit].plus(a_vel[dit],-s_tidalU0,1,0);
+	    a_tidalSource[dit].plus(a_vel[dit],s_tidalU0,0,1);
         }
 
     } else {

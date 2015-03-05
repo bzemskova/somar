@@ -597,7 +597,7 @@ void AMRNavierStokes::computeMOLSources (LevelData<FArrayBox>& a_Su,
     if (s_tidalU0 * s_tidalOmega != 0.0) {
         // Compute the gravitational source term.
         LevelData<FArrayBox> tidalSource(grids, SpaceDim);
-        this->fillTidalSource(tidalSource, a_stateTime, h);
+        this->fillTidalSource(tidalSource, a_u, a_stateTime, h);
 
         // Combine the advective and gravitational source terms.
         for (dit.reset(); dit.ok(); ++dit) {

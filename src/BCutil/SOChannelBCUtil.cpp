@@ -62,7 +62,7 @@ void SOChannelBCUtil::setScalarIC (FArrayBox&           a_scalarFAB,
                                    const LevelGeometry& a_levGeo,
                                    const DataIndex&     a_di) const
 {
-    a_scalarFAB.setVal(0.0, a_scalarComp);
+    a_scalarFAB.setVal(0.4, a_scalarComp);
 }
 
 
@@ -83,11 +83,11 @@ void SOChannelBCUtil::topBCValueFunc (Real*           a_pos,
 
     // These params adjust the shape of the hot/cold interface.
     static const RealVect L = LevelGeometry::getDomainLength();
-    static const Real minB = 0.0;
-    static const Real deltaB = 1.0;
+    //static const Real minB = 0.0;
+    //static const Real deltaB = 1.0;
 
-    Real fracX = a_pos[1] / L[1];
-    a_value[0] = minB + deltaB*fracX;
+    //Real fracX = a_pos[1] / L[1];
+    a_value[0] = 1.5*exp(-log(3.0)*a_pos[1]/L[1]) - 0.5; //minB + deltaB*fracX;
 }
 
 
@@ -147,183 +147,239 @@ BCMethodHolder SOChannelBCUtil::diffusiveSourceFuncBC () const
 BCMethodHolder SOChannelBCUtil::basicVelFuncBC (int a_veldir, bool a_isViscous) const
 {
     // // TEMPORARY!!
-    // return PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
-
-    BCMethodHolder holder;
-    const int extrapOrder = 0;
-
+     return PhysBCUtil::basicVelFuncBC(a_veldir, false);
+//
+//    BCMethodHolder holder;
+//    const int extrapOrder = 0;
+//
     //Tried also looking at BeamGenerationBCUtil.cpp -- seems to have decomposition
     //into velocity components in a similar manner
 
-    if (a_veldir == 0) {
+//    if (a_veldir == 0) {
         // x-dir
-        {
+//        {
             // Periodic. Do nothing
-        }
+//        }
 
         // y-dir
-        {
+//        {
             // Lo side
-            if (a_isViscous) {
+//            if (a_isViscous) {
                 // No-slip
-                RefCountedPtr<BCGhostClass> ghostBCPtr(
-                    new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                                      RealVect::Zero,
-                                                      BASISV(1),
-                                                      IntVect::Zero)
-                );
-                holder.addBCMethod(ghostBCPtr);
+//                RefCountedPtr<BCGhostClass> ghostBCPtr(
+  //                  new EllipticConstDiriBCGhostClass(RealVect::Zero,
+    //                                                  RealVect::Zero,
+      //                                                BASISV(1),
+        //                                              IntVect::Zero)
+          //      );
+            //    holder.addBCMethod(ghostBCPtr);
 
-            } else {
+//            } else {
                 // Free-slip
-                RefCountedPtr<BCGhostClass> ghostBCPtr(
-                    new EllipticExtrapBCGhostClass(extrapOrder,
-                                                   BASISV(1),
-                                                   IntVect::Zero)
-                );
-                holder.addBCMethod(ghostBCPtr);
+  //              RefCountedPtr<BCGhostClass> ghostBCPtr(
+    //                new EllipticExtrapBCGhostClass(extrapOrder,
+      //                                             BASISV(1),
+        //                                           IntVect::Zero)
+          //      );
+            //    holder.addBCMethod(ghostBCPtr);
 
-                RefCountedPtr<BCFluxClass> fluxBCPtr(
-                    new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                     RealVect::Zero,
-                                                     BASISV(1),
-                                                     IntVect::Zero)
-                );
-                holder.addBCMethod(fluxBCPtr);
-            }
+ //               RefCountedPtr<BCFluxClass> fluxBCPtr(
+   //                 new EllipticConstNeumBCFluxClass(RealVect::Zero,
+     //                                                RealVect::Zero,
+       //                                              BASISV(1),
+         //                                            IntVect::Zero)
+           //     );
+             //   holder.addBCMethod(fluxBCPtr);
+//            }
 
             // Hi side
-            {
+//            {
                 // Free-slip
-                RefCountedPtr<BCGhostClass> ghostBCPtr(
-                    new EllipticExtrapBCGhostClass(extrapOrder,
-                                                   IntVect::Zero,
-                                                   BASISV(1))
-                );
-                holder.addBCMethod(ghostBCPtr);
+  //              RefCountedPtr<BCGhostClass> ghostBCPtr(
+    //                new EllipticExtrapBCGhostClass(extrapOrder,
+      //                                             IntVect::Zero,
+        //                                           BASISV(1))
+          //      );
+            //    holder.addBCMethod(ghostBCPtr);
 
-                RefCountedPtr<BCFluxClass> fluxBCPtr(
-                    new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                     RealVect::Zero,
-                                                     IntVect::Zero,
-                                                     BASISV(1))
-                );
-                holder.addBCMethod(fluxBCPtr);
-            }
-        } // end y-dir
+//                RefCountedPtr<BCFluxClass> fluxBCPtr(
+  //                  new EllipticConstNeumBCFluxClass(RealVect::Zero,
+    //                                                 RealVect::Zero,
+      //                                               IntVect::Zero,
+        //                                             BASISV(1))
+          //      );
+            //    holder.addBCMethod(fluxBCPtr);
+//            }
+  //      } // end y-dir
 
         // z-dir
-        if (a_isViscous) {
+//        if (a_isViscous) {
             //  No-slip
-            RefCountedPtr<BCGhostClass> ghostBCPtr(
-                new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                                  RealVect::Zero,
-                                                  BASISV(2),
-                                                  BASISV(2))
-            );
-            holder.addBCMethod(ghostBCPtr);
+//            RefCountedPtr<BCGhostClass> ghostBCPtr(
+//                new EllipticConstDiriBCGhostClass(RealVect::Zero,
+//                                                  RealVect::Zero,
+//                                                  BASISV(2),
+//                                                  BASISV(2))
+//            );
+//            holder.addBCMethod(ghostBCPtr);
 
-        } else {
+//        } else {
             // Free-slip
-            RefCountedPtr<BCGhostClass> ghostBCPtr(
-                new EllipticExtrapBCGhostClass(extrapOrder,
-                                               BASISV(2),
-                                               BASISV(2))
-            );
-            holder.addBCMethod(ghostBCPtr);
+//            RefCountedPtr<BCGhostClass> ghostBCPtr(
+//                new EllipticExtrapBCGhostClass(extrapOrder,
+//                                               BASISV(2),
+//                                               BASISV(2))
+//            );
+//            holder.addBCMethod(ghostBCPtr);
 
-            RefCountedPtr<BCFluxClass> fluxBCPtr(
-                new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                 RealVect::Zero,
-                                                 BASISV(2),
-                                                 BASISV(2))
-            );
-            holder.addBCMethod(fluxBCPtr);
-        } // end z-dir
+//            RefCountedPtr<BCFluxClass> fluxBCPtr(
+//                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+//                                                 RealVect::Zero,
+ //                                                BASISV(2),
+ //                                                BASISV(2))
+  //          );
+    //        holder.addBCMethod(fluxBCPtr);
+      //  } // end z-dir
 
-    } else if (a_veldir == 1) {
+//    } else if (a_veldir == 1) {
         // TEMPORARY
         // We will set standard no-slip/free-slip BCs all around,
         // then overwrite them one-by-one. This way, we can comment
         // out some BCs and have something to fall back on.
-        holder = PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
+ //       holder = PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
 
         // x-dir
-        {
+   //     {
             // Periodic. Do nothing
-        }
+     //   }
 
         // y-dir
-        {
+       // {
             // Lo side
-            {
+         //   {
                 // No momentum flux through wall
-                RefCountedPtr<BCGhostClass> ghostBCPtr(
-                    new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                                      RealVect::Zero,
-                                                      BASISV(1),
-                                                      IntVect::Zero)
-                );
-                holder.addBCMethod(ghostBCPtr);
-            }
+ //               RefCountedPtr<BCGhostClass> ghostBCPtr(
+ //                   new EllipticConstDiriBCGhostClass(RealVect::Zero,
+   //                                                   RealVect::Zero,
+     //                                                 BASISV(1),
+       //                                               IntVect::Zero)
+         //       );
+           //     holder.addBCMethod(ghostBCPtr);
+//            }
 
             // NOTE: This leads to an instability.
             // I think we need zero Diri Pressure BCs here.
             // But that may conflict with the other velocity comp BCs.
             // This needs some thought.
-            // // Hi side
-            // {
+            // Hi side
+//             {
             //     // Zero strain rate normal to boundary.
-            //     RefCountedPtr<BCGhostClass> ghostBCPtr(
-            //         new EllipticExtrapBCGhostClass(extrapOrder,
-            //                                        IntVect::Zero,
-            //                                        BASISV(1))
-            //     );
-            //     holder.addBCMethod(ghostBCPtr);
+//                 RefCountedPtr<BCGhostClass> ghostBCPtr(
+  //                   new EllipticExtrapBCGhostClass(extrapOrder,
+    //                                                IntVect::Zero,
+      //                                              BASISV(1))
+        //         );
+          //       holder.addBCMethod(ghostBCPtr);
 
-            //     RefCountedPtr<BCFluxClass> fluxBCPtr(
-            //         new EllipticConstNeumBCFluxClass(RealVect::Zero,
-            //                                          RealVect::Zero,
-            //                                          IntVect::Zero,
-            //                                          BASISV(1))
-            //     );
-            //     holder.addBCMethod(fluxBCPtr);
-            // }
-        } // end y-dir
+ //                RefCountedPtr<BCFluxClass> fluxBCPtr(
+ //                    new EllipticConstNeumBCFluxClass(RealVect::Zero,
+ //                                                     RealVect::Zero,
+ //                                                     IntVect::Zero,
+ //                                                     BASISV(1))
+ //                );
+ //                holder.addBCMethod(fluxBCPtr);
+ //            }
+ //       } // end y-dir
 
         // z-dir
-        if (a_isViscous) {
+ //       if (a_isViscous) {
             //  No-slip
-            RefCountedPtr<BCGhostClass> ghostBCPtr(
-                new EllipticConstDiriBCGhostClass(RealVect::Zero,
-                                                  RealVect::Zero,
-                                                  BASISV(2),
-                                                  BASISV(2))
-            );
-            holder.addBCMethod(ghostBCPtr);
-
-        } else {
+   //         RefCountedPtr<BCGhostClass> ghostBCPtr(
+     //           new EllipticConstDiriBCGhostClass(RealVect::Zero,
+       //                                           RealVect::Zero,
+         //                                         BASISV(2),
+           //                                       BASISV(2))
+   //         );
+ //           holder.addBCMethod(ghostBCPtr);
+//
+//        } else {
             // Free-slip
-            RefCountedPtr<BCGhostClass> ghostBCPtr(
-                new EllipticExtrapBCGhostClass(extrapOrder,
-                                               BASISV(2),
-                                               BASISV(2))
-            );
-            holder.addBCMethod(ghostBCPtr);
+  //          RefCountedPtr<BCGhostClass> ghostBCPtr(
+    //            new EllipticExtrapBCGhostClass(extrapOrder,
+      //                                         BASISV(2),
+        //                                       BASISV(2))
+          //  );
+//            holder.addBCMethod(ghostBCPtr);
 
-            RefCountedPtr<BCFluxClass> fluxBCPtr(
-                new EllipticConstNeumBCFluxClass(RealVect::Zero,
-                                                 RealVect::Zero,
-                                                 BASISV(2),
-                                                 BASISV(2))
-            );
-            holder.addBCMethod(fluxBCPtr);
-        } // end z-dir
+//            RefCountedPtr<BCFluxClass> fluxBCPtr(
+//                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+//                                                 RealVect::Zero,
+  //                                               BASISV(2),
+    //                                             BASISV(2))
+      //      );
+        //    holder.addBCMethod(fluxBCPtr);
+ //       } // end z-dir
 
-    } else {
-        // No slip / free slip on all dirs and sides.
-        return PhysBCUtil::basicVelFuncBC(a_veldir, a_isViscous);
-    }
+   // } else if (a_veldir == 2) {
+        // x-dir
+     //   {
+            // Periodic. Do nothing
+       // }
 
-    return holder;
+        // y-dir
+    //    {
+            // Lo side
+         //   if (a_isViscous) {
+                // No-slip
+           //     RefCountedPtr<BCGhostClass> ghostBCPtr(
+             //       new EllipticConstDiriBCGhostClass(RealVect::Zero,
+               //                                       RealVect::Zero,
+                 //                                     BASISV(1),
+                   //                                   IntVect::Zero)
+    //            );
+      //          holder.addBCMethod(ghostBCPtr);
+
+        //    } else {
+                // Free-slip
+          //      RefCountedPtr<BCGhostClass> ghostBCPtr(
+            //        new EllipticExtrapBCGhostClass(extrapOrder,
+              //                                     BASISV(1),
+                //                                   IntVect::Zero)
+   //             );
+//                holder.addBCMethod(ghostBCPtr);
+
+  //              RefCountedPtr<BCFluxClass> fluxBCPtr(
+    //                new EllipticConstNeumBCFluxClass(RealVect::Zero,
+      //                                               RealVect::Zero,
+        //                                             BASISV(1),
+          //                                           IntVect::Zero)
+            //    );
+   //             holder.addBCMethod(fluxBCPtr);
+     //       }
+
+            // Hi side
+       //     {
+                // w=0
+         //       RefCountedPtr<BCGhostClass> ghostBCPtr(
+           //         new EllipticConstDiriBCGhostClass(RealVect::Zero,
+             //                                         RealVect::Zero,
+               //                                       IntVect::Zero,
+                 //                                     BASISV(1))
+ //               );
+   //             holder.addBCMethod(ghostBCPtr);
+     //       }
+       // } // end y-dir
+
+        // z-dir: no flux, solid wall, w=0 on both sides
+//        RefCountedPtr<BCGhostClass> ghostBCPtr(
+  //                  new EllipticConstDiriBCGhostClass(RealVect::Zero,
+    //                                                  RealVect::Zero,
+      //                                                BASISV(2),
+        //                                              BASISV(2))
+          //          );
+ //       holder.addBCMethod(ghostBCPtr);
+   // } 
+
+
+  //  return holder;
 }

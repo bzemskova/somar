@@ -490,6 +490,7 @@ protected:
     // This is U0*omega*cos(omega*t) in the Cartesian basis.
     // a_tidalSource needs SpaceDim comps.
     void fillTidalSource (LevelData<FArrayBox>& a_tidalSource,
+			  LevelData<FArrayBox>& a_vel,
                           const Real            a_time,
                           const Real            a_dt) const;
 

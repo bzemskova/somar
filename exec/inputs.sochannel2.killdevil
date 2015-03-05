@@ -4,21 +4,25 @@
 ibc.problem = 9
 ibc.useBackgroundScalar = 0
 # amr.gravityMethod =                     # [1]   0=none, 1=explicit, 2=implicit (only with bg scalar)
-amr.verbosity = 2                         # [0]
+amr.verbosity = 1                         # [0]
 # amr.restart_file =
 
 
 ### Coordinate map
 geometry.coordMap = 0
 
+### Rotation
+ibc.tidalOmega = 1.0 # [0] if no rotation, [1] if rotation
+ibc.tidalU0 = -4.0   # [0] if no rotation, value of Coriolis parameter f if rotation
+
 
 ### Base grid
-amr.length = 1.0 1.0 1.0
+amr.length = 2.0 10.0 1.0
 # amr.nx = 32 32 32
-amr.nx = 32 64 64
+amr.nx = 128 512 64
 # amr.nx_offset =                         # [0 0 0]
 # amr.max_base_grid_size =
-# amr.max_grid_size =
+amr.max_grid_size = 64 64 64
 amr.isPeriodic = 1 0 0                       # [0 0 0]
 
 
@@ -34,8 +38,8 @@ amr.regrid_intervals = 4 4 4
 
 
 ### Timestepping
-amr.final = 100.0
-amr.maxsteps = 1000
+amr.final = 30.0
+amr.maxsteps = 2000
 amr.cfl = 0.9
 # amr.max_dt = 0.1                            # [-1.0]
 # amr.useSubcycling =                     # [1]
@@ -54,11 +58,19 @@ amr.viscous_solver_type = 1             # [1] 0=backwardEuler, 1=CrankNicolson, 
 
 
 ### Plot files
-plot.plot_prefix = /lustre/scr/z/e/zemskova/trial/plot_                     # [plot_]
-plot.checkpoint_prefix = /lustre/scr/z/e/zemskova/trial/chkpt_               # [chkpt_]
-# plot.plot_period =
-plot.plot_interval = 1
+plot.plot_prefix = /lustre/scr/z/e/zemskova/AMR_output/BW_comparison/HC_rotation_nostrat_medl/plot_                     # [plot_]
+plot.checkpoint_prefix = /lustre/scr/z/e/zemskova/AMR_output/BW_comparison/HC_rotation_nostrat_medl/chkpt_               # [chkpt_]
+plot.plot_period = 2.0
+#plot.plot_interval = 1
 plot.checkpoint_interval = 100
+
+plot.writeScalars = 1
+plot.writeScalarsMinusBackground = 0
+plot.writePressure = 0
+plot.writeDisplacement = 0
+plot.writeDivergence = 0
+plot.writeLambda = 0
+
 
 
 # ### Advection scheme parameters
